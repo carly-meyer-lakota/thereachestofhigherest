@@ -53,8 +53,8 @@ def fuzzy_search(query, category):
                     if max_score > 60:  # Threshold for fuzzy match
                         fuzzy_matches.append((max_score, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text))
     
-    # Combine exact matches first, followed by fuzzy matches
-    all_matches = sorted(exact_matches + fuzzy_matches, key=lambda x: -x[0])[:max(5, len(exact_matches) + len(fuzzy_matches))]  # Ensure at least 5 results
+    # Combine exact matches first, followed by fuzzy matches (exact match first with score of 100)
+    all_matches = sorted(exact_matches, key=lambda x: -x[0]) + sorted(fuzzy_matches, key=lambda x: -x[0])  # Ensure exact matches come first
     return all_matches
 
 # Streamlit UI
@@ -67,13 +67,13 @@ if search_query:
     if matches:
         st.write("### Search Results:")
         for score, level, unit, topic, part, matched_col, matched_content in matches:
-            # Highlight the matching content for better visibility
-            highlighted_text = re.sub(f"({search_query})", r"**\1**", matched_content, flags=re.IGNORECASE)
+            # Highlight the matching content in yellow
+            highlighted_text = re.sub(f"({search_query})", r'<mark>\1</mark>', matched_content, flags=re.IGNORECASE)
             
             # Improved result format
             st.markdown(f"#### **{level} {unit} ({topic})**")
             st.markdown(f"  - **Part**: {part}")
             st.markdown(f"  - **Matched Column**: {matched_col}")
-            st.markdown(f"  - *Matched Content*: {highlighted_text}")
+            st.markdown(f"  - *Matched Content*: {highlighted_text}", unsafe_allow_html=True)
     else:
         st.warning("No exact matches found. Try simplifying your search or using different keywords.")
