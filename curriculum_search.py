@@ -67,12 +67,14 @@ if search_query:
     if matches:
         st.write("### Search Results:")
         for score, level, unit, topic, part, matched_col, matched_content in matches:
+            # Format the first line to match the requested output format
+            formatted_result = f"Reach Higher {level} Unit {unit}: {topic} - Part {part}"
+            
             # Highlight the matching content in yellow
             highlighted_text = re.sub(f"({search_query})", r'<mark>\1</mark>', matched_content, flags=re.IGNORECASE)
             
             # Improved result format
-            st.markdown(f"#### **{level} {unit} ({topic})**")
-            st.markdown(f"  - **Part**: {part}")
+            st.markdown(f"#### {formatted_result}")
             st.markdown(f"  - **Matched Column**: {matched_col}")
             st.markdown(f"  - *Matched Content*: {highlighted_text}", unsafe_allow_html=True)
     else:
