@@ -73,9 +73,8 @@ if search_query:
             # Highlight the matching content in yellow
             highlighted_text = re.sub(f"({search_query})", r'<mark>\1</mark>', matched_content, flags=re.IGNORECASE)
             
-            # Improved result format
+            # Combine "Matched Column" and "Matched Content" into a single line
             st.markdown(f"#### {formatted_result}")
-            st.markdown(f"  - **Matched Column**: {matched_col}")
-            st.markdown(f"  - *Matched Content*: {highlighted_text}", unsafe_allow_html=True)
+            st.markdown(f"  - *Matched Content*: **{matched_col} - {highlighted_text}**", unsafe_allow_html=True)
     else:
         st.warning("No exact matches found. Try simplifying your search or using different keywords.")
