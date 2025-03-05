@@ -5,6 +5,10 @@ import nltk
 from nltk.corpus import wordnet
 import re
 
+# Ensure WordNet data is available
+nltk.download('wordnet')
+nltk.download('omw-1.4')  # Download the Open Multilingual WordNet if needed
+
 # Load CSV file
 @st.cache_data
 def load_data():
