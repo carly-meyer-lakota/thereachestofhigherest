@@ -1,6 +1,5 @@
-streamlit==1.16.0
-pandas==1.5.3
-rapidfuzz==2.6.0
-openpyxl==3.0.10
-nltk==3.7
-
+streamlit
+pandas
+rapidfuzz
+openpyxl
+nltk
