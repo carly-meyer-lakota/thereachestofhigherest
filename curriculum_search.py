@@ -37,18 +37,25 @@ def fuzzy_search(query, category):
     expanded_terms = expand_query(query)
     search_cols = VOCAB_COLS if category == "Vocabulary" else SKILL_COLS if category == "Skill" else GENRE_COL
     
-    results = []
+    exact_matches = []
+    fuzzy_matches = []
+
     for _, row in df.iterrows():
         for col in search_cols:
             text = row[col]
             if text:
-                scores = [fuzz.partial_ratio(term, text) for term in expanded_terms]
-                max_score = max(scores, default=0)
-                if max_score > 60:  # Threshold for match
-                    results.append((max_score, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text))
+                # Check for exact matches first
+                if re.search(rf"\b{re.escape(query)}\b", text, re.IGNORECASE):  # Exact match
+                    exact_matches.append((100, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text))
+                else:
+                    scores = [fuzz.partial_ratio(term, text) for term in expanded_terms]
+                    max_score = max(scores, default=0)
+                    if max_score > 60:  # Threshold for fuzzy match
+                        fuzzy_matches.append((max_score, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text))
     
-    results = sorted(results, key=lambda x: -x[0])[:max(5, len(results))]  # Ensure at least 5 results
-    return results
+    # Combine exact matches first, followed by fuzzy matches
+    all_matches = sorted(exact_matches + fuzzy_matches, key=lambda x: -x[0])[:max(5, len(exact_matches) + len(fuzzy_matches))]  # Ensure at least 5 results
+    return all_matches
 
 # Streamlit UI
 st.title("Reach Higher Curriculum Search")
@@ -59,10 +66,14 @@ if search_query:
     matches = fuzzy_search(search_query, category)
     if matches:
         st.write("### Search Results:")
-        results_df = pd.DataFrame(matches, columns=["Relevance", "Level", "Unit", "Topic & Content Area", "Part", "Matched Column", "Matched Content"])
-        for _, row in results_df.iterrows():
-            highlighted_text = re.sub(f"({search_query})", r"**\1**", row["Matched Content"], flags=re.IGNORECASE)
-            st.markdown(f"- **{row['Level']} {row['Unit']} ({row['Topic & Content Area']}) Part {row['Part']}**")
-            st.markdown(f"  - *{row['Matched Column']}*: {highlighted_text}")
+        for _, row in matches:
+            # Highlight the matching content for better visibility
+            highlighted_text = re.sub(f"({search_query})", r"**\1**", row[6], flags=re.IGNORECASE)
+            
+            # Improved result format
+            st.markdown(f"#### **{row[1]} {row[2]} ({row[3]})**")
+            st.markdown(f"  - **Part**: {row[4]}")
+            st.markdown(f"  - **Matched Column**: {row[5]}")
+            st.markdown(f"  - *Matched Content*: {highlighted_text}")
     else:
         st.warning("No exact matches found. Try simplifying your search or using different keywords.")
