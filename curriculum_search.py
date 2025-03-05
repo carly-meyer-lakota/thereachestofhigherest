@@ -66,14 +66,14 @@ if search_query:
     matches = fuzzy_search(search_query, category)
     if matches:
         st.write("### Search Results:")
-        for _, row in matches:
+        for score, level, unit, topic, part, matched_col, matched_content in matches:
             # Highlight the matching content for better visibility
-            highlighted_text = re.sub(f"({search_query})", r"**\1**", row[6], flags=re.IGNORECASE)
+            highlighted_text = re.sub(f"({search_query})", r"**\1**", matched_content, flags=re.IGNORECASE)
             
             # Improved result format
-            st.markdown(f"#### **{row[1]} {row[2]} ({row[3]})**")
-            st.markdown(f"  - **Part**: {row[4]}")
-            st.markdown(f"  - **Matched Column**: {row[5]}")
+            st.markdown(f"#### **{level} {unit} ({topic})**")
+            st.markdown(f"  - **Part**: {part}")
+            st.markdown(f"  - **Matched Column**: {matched_col}")
             st.markdown(f"  - *Matched Content*: {highlighted_text}")
     else:
         st.warning("No exact matches found. Try simplifying your search or using different keywords.")
