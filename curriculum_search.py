@@ -45,12 +45,12 @@ def fuzzy_search(query, category):
             if text:
                 # Check for exact matches first
                 if re.search(rf"\b{re.escape(query)}\b", text, re.IGNORECASE):  # Exact match
-                    exact_matches.append((100, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text))
+                    exact_matches.append((100, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text, query))
                 else:
-                    scores = [fuzz.partial_ratio(term, text) for term in expanded_terms]
-                    max_score = max(scores, default=0)
+                    scores = [(term, fuzz.partial_ratio(term, text)) for term in expanded_terms]
+                    max_term, max_score = max(scores, key=lambda x: x[1], default=(None, 0))
                     if max_score > 60:  # Threshold for fuzzy match
-                        fuzzy_matches.append((max_score, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text))
+                        fuzzy_matches.append((max_score, row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"], row["PART"], col, text, max_term))
     
     # Combine exact matches first, followed by fuzzy matches (exact match first with score of 100)
     all_matches = sorted(exact_matches, key=lambda x: -x[0]) + sorted(fuzzy_matches, key=lambda x: -x[0])  # Ensure exact matches come first
@@ -68,18 +68,24 @@ if search_query:
         
         # Create a DataFrame for the results
         if category == "Vocabulary":
-            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"])
+            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content", "Matched Term"])
         elif category == "Skill":
-            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"])
+            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content", "Matched Term"])
             # Filter to only include matched skill columns
-            results_df = results_df[["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"]]
+            results_df = results_df[["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content", "Matched Term"]]
         else:  # Genre
-            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"])
+            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content", "Matched Term"])
+        
+        # Combine "Matched Column" and "Matched Content" columns
+        results_df["Matched Content"] = results_df.apply(lambda row: f"{row['Matched Column']} - {row['Matched Content']}", axis=1)
         
         # Highlight the matching content in yellow
-        results_df["Matched Content"] = results_df["Matched Content"].apply(lambda x: re.sub(f"({search_query})", r'<span style="background-color: yellow">\1</span>', x, flags=re.IGNORECASE))
+        results_df["Matched Content"] = results_df.apply(lambda row: re.sub(f"({re.escape(row['Matched Term'])})", r'<span style="background-color: yellow">\1</span>', row["Matched Content"], flags=re.IGNORECASE), axis=1)
+        
+        # Drop the redundant columns
+        results_df = results_df.drop(columns=["Score", "Matched Column", "Matched Term"])
         
         # Display the results in a table
-        st.write(results_df.to_html(escape=False), unsafe_allow_html=True)
+        st.write(results_df.to_html(index=False, escape=False), unsafe_allow_html=True)
     else:
         st.warning("No exact matches found. Try simplifying your search or using different keywords.")
