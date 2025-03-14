@@ -17,10 +17,9 @@ def load_data():
 df = load_data()
 
 # Define columns based on search type
-VOCAB_COLS = ["CONTENT VOCABULARY", "ACADEMIC VOCABULARY"]
-SKILL_COLS = ["LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
-GENRE_COL = ["GENRES"]
-ALL_COLS = VOCAB_COLS + SKILL_COLS + GENRE_COL
+VOCAB_COLS = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY"]
+SKILL_COLS = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
+GENRE_COL = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "GENRES"]
 
 # Function to get synonyms and related words
 def expand_query(query):
@@ -66,15 +65,21 @@ if search_query:
     matches = fuzzy_search(search_query, category)
     if matches:
         st.write("### Search Results:")
-        for score, level, unit, topic, part, matched_col, matched_content in matches:
-            # Format the first line to match the requested output format
-            formatted_result = f"Reach Higher {level} Unit {unit}: {topic} - {part}"
-            
-            # Highlight the matching content in yellow
-            highlighted_text = re.sub(f"({search_query})", r'<mark>\1</mark>', matched_content, flags=re.IGNORECASE)
-            
-            # Combine "Matched Column" and "Matched Content" into a single line
-            st.markdown(f"#### {formatted_result}")
-            st.markdown(f"  - *Matched Content*: **{matched_col} - {highlighted_text}**", unsafe_allow_html=True)
+        
+        # Create a DataFrame for the results
+        if category == "Vocabulary":
+            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"])
+        elif category == "Skill":
+            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"])
+            # Filter to only include matched skill columns
+            results_df = results_df[["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"]]
+        else:  # Genre
+            results_df = pd.DataFrame(matches, columns=["Score", "Level", "Unit", "Topic", "Part", "Matched Column", "Matched Content"])
+        
+        # Highlight the matching content in yellow
+        results_df["Matched Content"] = results_df["Matched Content"].apply(lambda x: re.sub(f"({search_query})", r'<span style="background-color: yellow">\1</span>', x, flags=re.IGNORECASE))
+        
+        # Display the results in a table
+        st.write(results_df.to_html(escape=False), unsafe_allow_html=True)
     else:
         st.warning("No exact matches found. Try simplifying your search or using different keywords.")
