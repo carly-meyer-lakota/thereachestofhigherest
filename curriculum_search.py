@@ -29,9 +29,12 @@ VOCAB_COLS = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "CONTENT VOCABU
 SKILL_COLS = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
 GENRE_COL = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "GENRES"]
 
+# Common stop words to ignore in search queries
+STOP_WORDS = {"a", "an", "and", "the", "in", "on", "at", "to", "for", "of", "with", "by", "about"}
+
 # Function to get synonyms and related words
 def expand_query(query):
-    words = query.lower().split()
+    words = [word for word in query.lower().split() if word not in STOP_WORDS]
     expanded = set(words)
     
     for word in words:
