@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import pandas as pd
 from rapidfuzz import process, fuzz
@@ -6,16 +7,20 @@ from nltk.corpus import wordnet
 import re
 
 # Ensure WordNet data is available only if not already downloaded
-from nltk.data import find
-
 def ensure_nltk_downloads():
-    for resource in ['corpora/wordnet.zip', 'corpora/omw-1.4.zip']:
-        try:
-            find(resource)
-        except LookupError:
-            nltk.download(resource.split('/')[1])
+    try:
+        nltk.data.find('corpora/wordnet')
+    except LookupError:
+        nltk.download('wordnet')
+    try:
+        nltk.data.find('corpora/omw-1.4')
+    except LookupError:
+        nltk.download('omw-1.4')
 
 ensure_nltk_downloads()
+
+# Set NLTK_DATA environment variable (useful for deployment)
+os.environ['NLTK_DATA'] = '/path/to/nltk_data'
 
 # Load CSV file
 @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
