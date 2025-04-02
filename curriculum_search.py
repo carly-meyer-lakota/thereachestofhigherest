@@ -29,10 +29,10 @@ def load_data():
 
 df = load_data()
 
-# Define columns based on search type, excluding LEVEL, UNIT, and PART
-VOCAB_COLS = ["TOPIC AND CONTENT AREA", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY"]
-SKILL_COLS = ["LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
-GENRE_COL = ["TOPIC AND CONTENT AREA", "GENRES"]
+# Define columns based on search type, now including "WORD WORK"
+VOCAB_COLS = ["TOPIC AND CONTENT AREA", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY", "WORD WORK"]
+SKILL_COLS = ["LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT", "WORD WORK"]
+GENRE_COL = ["TOPIC AND CONTENT AREA", "GENRES", "WORD WORK"]
 
 # Common stop words to ignore in search queries
 STOP_WORDS = {"a", "an", "and", "the", "in", "on", "at", "to", "for", "of", "with", "by", "about"}
