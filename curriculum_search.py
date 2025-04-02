@@ -29,13 +29,10 @@ def load_data():
 
 df = load_data()
 
-# Print column names for debugging
-st.write(df.columns)
-
-# Define columns based on search type, now including "WORD WORK"
-VOCAB_COLS = ["TOPIC AND CONTENT AREA", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY", "WORD WORK"]
-SKILL_COLS = ["LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT", "WORD WORK"]
-GENRE_COLS = ["TOPIC AND CONTENT AREA", "GENRES", "WORD WORK"]
+# Define columns based on search type, excluding LEVEL, UNIT, and PART
+VOCAB_COLS = ["TOPIC AND CONTENT AREA", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY"]
+SKILL_COLS = ["LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
+GENRE_COL = ["TOPIC AND CONTENT AREA", "GENRES"]
 
 # Common stop words to ignore in search queries
 STOP_WORDS = {"a", "an", "and", "the", "in", "on", "at", "to", "for", "of", "with", "by", "about"}
@@ -60,7 +57,7 @@ def fuzzy_search(query, category):
     search_cols = {
         "Vocabulary": VOCAB_COLS,
         "Skill": SKILL_COLS,
-        "Genre": GENRE_COLS,
+        "Genre": GENRE_COL,
     }[category]
     
     matches = []
