@@ -29,10 +29,10 @@ def load_data():
 
 df = load_data()
 
-# Define columns based on search type
-VOCAB_COLS = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY"]
-SKILL_COLS = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
-GENRE_COL = ["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART", "GENRES"]
+# Define columns based on search type, excluding LEVEL, UNIT, and PART
+VOCAB_COLS = ["TOPIC AND CONTENT AREA", "CONTENT VOCABULARY", "ACADEMIC VOCABULARY"]
+SKILL_COLS = ["LANGUAGE SKILL", "THINKING MAP SKILL", "READING SKILL", "PHONICS SKILL", "GRAMMAR SKILL", "ORAL LANGUAGE PROJECT", "WRITING PROJECT"]
+GENRE_COL = ["TOPIC AND CONTENT AREA", "GENRES"]
 
 # Common stop words to ignore in search queries
 STOP_WORDS = {"a", "an", "and", "the", "in", "on", "at", "to", "for", "of", "with", "by", "about"}
@@ -53,7 +53,12 @@ def expand_query(query):
 # Function to perform fuzzy search
 def fuzzy_search(query, category):
     expanded_terms = expand_query(query)
-    search_cols = {"Vocabulary": VOCAB_COLS, "Skill": SKILL_COLS, "Genre": GENRE_COL}[category]
+    # Select the relevant columns for each category
+    search_cols = {
+        "Vocabulary": VOCAB_COLS,
+        "Skill": SKILL_COLS,
+        "Genre": GENRE_COL,
+    }[category]
     
     matches = []
     
