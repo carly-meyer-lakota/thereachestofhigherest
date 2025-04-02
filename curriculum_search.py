@@ -55,20 +55,30 @@ def fuzzy_search(query, category):
     expanded_terms = expand_query(query)
     search_cols = {"Vocabulary": VOCAB_COLS, "Skill": SKILL_COLS, "Genre": GENRE_COL}[category]
     
-    exact_matches, fuzzy_matches = [], []
+    matches = []
     
     for _, row in df.iterrows():
-        row_text = " ".join(str(row[col]) for col in search_cols if row[col])  # Merge columns into one string
-        
-        # Check exact match
-        if re.search(rf"\b{re.escape(query)}\b", row_text, re.IGNORECASE):
-            exact_matches.append((100, *row[["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART"]], row_text, query))
-        else:
-            best_match = process.extractOne(row_text, expanded_terms, scorer=fuzz.partial_ratio)
-            if best_match and best_match[1] > 60:
-                fuzzy_matches.append((best_match[1], *row[["LEVEL", "UNIT", "TOPIC AND CONTENT AREA", "PART"]], row_text, best_match[0]))
+        for col in search_cols:
+            if not row[col]:  # Skip empty cells
+                continue
+            cell_content = str(row[col])
+            
+            # Check for exact match
+            if re.search(rf"\b{re.escape(query)}\b", cell_content, re.IGNORECASE):
+                matches.append((
+                    row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"],
+                    row["PART"], col, cell_content, query
+                ))
+            else:
+                # Fuzzy match
+                best_match = process.extractOne(cell_content, expanded_terms, scorer=fuzz.partial_ratio)
+                if best_match and best_match[1] > 60:  # Threshold for fuzzy match
+                    matches.append((
+                        row["LEVEL"], row["UNIT"], row["TOPIC AND CONTENT AREA"],
+                        row["PART"], col, cell_content, best_match[0]
+                    ))
     
-    return sorted(exact_matches, key=lambda x: -x[0]) + sorted(fuzzy_matches, key=lambda x: -x[0])
+    return matches
 
 # Streamlit UI
 st.title("Reach Higher Curriculum Search")
@@ -78,22 +88,25 @@ category = st.radio("Search for:", ["Vocabulary", "Skill", "Genre"])
 if search_query:
     matches = fuzzy_search(search_query, category)
     if matches:
-        st.write("### Search Results:")
-        
-        # Create a results DataFrame dynamically
-        columns = ["Score", "Level", "Unit", "Topic", "Part", "Matched Content", "Matched Term"]
+        # Prepare the results DataFrame
+        columns = ["Level", "Unit", "Topic", "Part", "Match Found", "Matched Content", "Matched Term"]
         results_df = pd.DataFrame(matches, columns=columns)
         
-        # Highlight search term in results
+        # Highlight the matched term in the "Matched Content" column
         def highlight_match(row):
-            return re.sub(f"({re.escape(row['Matched Term'])})", r'<span style="background-color: yellow">\1</span>', row["Matched Content"], flags=re.IGNORECASE)
+            return re.sub(
+                rf"({re.escape(row['Matched Term'])})",
+                r'<span style="background-color: yellow">\1</span>',
+                row["Matched Content"], flags=re.IGNORECASE
+            )
         
         results_df["Matched Content"] = results_df.apply(highlight_match, axis=1)
         
-        # Drop redundant columns
-        results_df.drop(columns=["Score", "Matched Term"], inplace=True)
+        # Drop "Matched Term" column before displaying
+        results_df.drop(columns=["Matched Term"], inplace=True)
         
         # Display results
+        st.markdown("### Search Results:")
         st.markdown(results_df.to_html(index=False, escape=False), unsafe_allow_html=True)
     else:
-        st.warning("No exact matches found. Try simplifying your search or using different keywords.")
+        st.warning("No matches found. Try simplifying your search or using different keywords.")
